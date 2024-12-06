@@ -4,46 +4,24 @@
       <div class="resume" :class="{ 'shifted': showDetail }">
         <h1>个人简历</h1>
         <PersonalInfo />
-        
-        <div class="section">
-          <h2>项目经验</h2>
-          <div class="project-list">
-            <div v-for="(project, index) in projects" 
-                 :key="index" 
-                 class="project-item"
-                 @click="showProjectDetail(index)">
-              <h3>{{ project.name }}</h3>
-              <p>{{ project.brief }}</p>
-            </div>
-          </div>
-        </div>
+        <EducationSection @open-education-detail="handleEducationDetailOpen" />
+
+        <!-- 使用ProjectExperience组件，从中获得项目列表和事件 -->
+        <ProjectExperience @open-project-detail="handleProjectDetailOpen" />
       </div>
     </div>
 
+    <!-- 单一详情面板 -->
     <transition name="slide">
       <div v-if="showDetail" class="detail-panel">
-        <button class="close-btn" @click="closeDetail">返回总览</button>
+        <button class="close-btn" @click="handleDetailClose">返回总览</button>
         <div class="detail-content">
-          <h2>{{ currentProject.name }}</h2>
-          <div class="detail-info">
-            <p>{{ currentProject.description }}</p>
-            
-            <div class="video-container">
-              <video 
-                v-if="currentProject.video" 
-                controls 
-                class="project-video">
-                <source :src="currentProject.video" type="video/mp4">
-                您的浏览器不支持视频播放。
-              </video>
-            </div>
+          <!-- 教育详情 -->
+          <component v-if="currentSchool" :is="currentSchool.component" :school-data="currentSchool"
+            @close="handleDetailClose" />
 
-            <h3>技术栈</h3>
-            <ul>
-              <li v-for="(tech, index) in currentProject.technologies" 
-                  :key="index">{{ tech }}</li>
-            </ul>
-          </div>
+          <!-- 项目详情 -->
+          <component v-else-if="currentProject" :is="currentProject.component" @close="handleDetailClose" />
         </div>
       </div>
     </transition>
@@ -52,55 +30,81 @@
 
 <script>
 import PersonalInfo from './components/PersonalInfo/index.vue';
+import EducationSection from './components/Education/index.vue';
+import Bupt from './components/Education/components/buptSection.vue';
+import Nus from './components/Education/components/nusSection.vue';
+import Mit from './components/Education/components/mitSection.vue';
+
+// 引入刚才编写的ProjectExperience/index.vue
+import ProjectExperience from './components/ProjectExperience/index.vue'
+import ProjectOne from './components/ProjectExperience/components/ProjectOne.vue'
+import ProjectTwo from './components/ProjectExperience/components/ProjectTwo.vue'
+import ProjectThree from './components/ProjectExperience/components/ProjectThree.vue'
 
 export default {
   name: 'App',
   components: {
-    PersonalInfo
+    PersonalInfo,
+    EducationSection,
+    Bupt,
+    Nus,
+    Mit,
+    ProjectExperience,
+    ProjectOne,
+    ProjectTwo,
+    ProjectThree
   },
   data() {
     return {
       showDetail: false,
       currentProject: null,
-      projects: [
-        {
-          name: '项目一',
-          brief: '简短描述',
-          description: '详细描述...',
-          technologies: ['Vue.js', 'Webpack', 'ES6'],
-          video: '/path/to/your/video.mp4'
-        },
-        // 添加更多项目...
-        {
-          name: '项目二',
-          brief: '简短描述',
-          description: '详细描述...',
-          technologies: ['Vue.js', 'Webpack', 'ES6'],
-          video: '/path/to/your/video.mp4'
-        },
-        {
-          name: '项目三',
-          brief: '简短描述',
-          description: '详细描述...',
-          technologies: ['Vue.js', 'Webpack', 'ES6'],
-          video: '/path/to/your/video.mp4'
-        }
-      ]
+      currentSchool: null
     }
   },
   methods: {
-    showProjectDetail(index) {
-      this.currentProject = this.projects[index]
-      this.showDetail = true
+    handleProjectDetailOpen(selectedProject) {
+      // 如果此时已有学历或项目详情显示，需要先关闭当前详情再打开新的
+      if (this.showDetail) {
+        this.handleDetailClose();
+        this.$nextTick(() => {
+          // 确保在关闭原有详情后再打开项目详情
+          this.currentSchool = null;
+          this.currentProject = selectedProject;
+          this.showDetail = true;
+        });
+      } else {
+        // 如果没有详情在展示，直接打开项目详情
+        this.currentSchool = null;
+        this.currentProject = selectedProject;
+        this.showDetail = true;
+      }
     },
-    closeDetail() {
-      this.showDetail = false
+    handleEducationDetailOpen(schoolData) {
+      // 如果此时已有项目或学历详情显示，先关闭再打开
+      if (this.showDetail) {
+        this.handleDetailClose();
+        this.$nextTick(() => {
+          this.currentProject = null;
+          this.currentSchool = schoolData;
+          this.showDetail = true;
+        });
+      } else {
+        this.currentProject = null;
+        this.currentSchool = schoolData;
+        this.showDetail = true;
+      }
+    },
+    handleDetailClose() {
+      this.showDetail = false;
+      this.currentProject = null;
+      this.currentSchool = null;
     }
   }
 }
 </script>
 
 <style>
+/* 样式保持不变 */
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -127,31 +131,12 @@ export default {
   background: #fff;
   padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.1);
-
-  h1 {
-    text-align: center;
-    vertical-align: middle;
-  }
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
 }
 
 .resume.shifted {
-  transform: translateX(-30%);
+  transform: translateX(-60%);
   max-width: 40%;
-}
-
-.project-item {
-  padding: 15px;
-  margin: 10px 0;
-  border: 1px solid #eee;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.project-item:hover {
-  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-  transform: translateY(-2px);
 }
 
 .detail-panel {
@@ -162,16 +147,21 @@ export default {
   height: 100vh;
   background: #fff;
   padding: 20px;
-  box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
 }
 
-.slide-enter-active, .slide-leave-active {
-  transition: transform 0.5s ease;
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.5s ease, opacity 0.5s ease;
 }
 
-.slide-enter-from, .slide-leave-to {
+.slide-enter-from,
+.slide-leave-to {
   transform: translateX(100%);
+  opacity: 0;
 }
 
 .close-btn {
@@ -190,7 +180,9 @@ export default {
   margin-bottom: 30px;
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
   color: #2c3e50;
 }
 
@@ -202,7 +194,7 @@ h1, h2, h3 {
   margin: 20px 0;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .project-video {
