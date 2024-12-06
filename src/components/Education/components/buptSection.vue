@@ -1,5 +1,5 @@
 <template>
-  <div class="detail-panel">
+  <div class="education-detail">
     <button class="close-btn" @click="$emit('close')">返回</button>
     <div class="detail-content">
       <h2>{{ schoolData.name }}</h2>
@@ -32,18 +32,8 @@ export default {
 </script>
 
 <style scoped>
-.detail-panel {
-  position: fixed;
-  right: 0;
-  top: 0;
-  width: 50%;
-  height: 100vh;
-  background: #fff;
+.education-detail {
   padding: 20px;
-  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
-  overflow-y: auto;
-  box-sizing: border-box;
-  border: 1px solid #ccc;
 }
 
 .close-btn {
