@@ -1,32 +1,37 @@
 # 构建阶段
-FROM node:16-alpine as build-stage
+FROM node:16-alpine AS build-stage
 
-# 设置工作目录
 WORKDIR /app
-
-# 复制 package.json 和 package-lock.json (如果存在)
 COPY package*.json ./
-
-# 安装项目依赖
 RUN npm install
-
-# 复制项目文件
 COPY . .
-
-# 构建项目
 RUN npm run build
 
 # 生产阶段
-FROM nginx:stable-alpine as production-stage
-
-# 复制构建产物到 Nginx 目录
+FROM nginx:alpine AS production-stage
 COPY --from=build-stage /app/dist /usr/share/nginx/html
 
-# 复制自定义的 Nginx 配置（如果需要）
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+RUN adduser -D myuser
+
+# 给 /var/run/nginx 目录创建并修改所有者和权限
+RUN mkdir -p /var/run/nginx && \
+    chown -R myuser:myuser /var/run/nginx && \
+    chmod -R 755 /var/run/nginx
+
+# 确保 /var/run/nginx.pid 文件可以被写入
+RUN touch /var/run/nginx.pid && \
+    chown myuser:myuser /var/run/nginx.pid
+
+# 给 /var/cache/nginx/client_temp 目录创建并修改所有者和权限
+RUN mkdir -p /var/cache/nginx/client_temp && \
+    chown -R myuser:myuser /var/cache/nginx
+
+USER myuser
 
 # 暴露 80 端口
 EXPOSE 80
 
-# 启动 Nginx
-CMD ["nginx", "-g", "daemon off;"] 
+# 切换到非root用户
+USER myuser
+
+CMD ["nginx", "-g", "daemon off;"]
