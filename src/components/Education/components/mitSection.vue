@@ -1,6 +1,5 @@
 <template>
     <div class="school-detail">
-      <button class="close-btn" @click="$emit('close')">返回</button>
       <div class="detail-content">
         <h2>{{ schoolData.name }}</h2>
       </div>

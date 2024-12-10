@@ -1,20 +1,28 @@
 <template>
   <div class="education-detail">
-    <button class="close-btn" @click="$emit('close')">返回</button>
     <div class="detail-content">
       <h2>{{ schoolData.name }}</h2>
       <div class="detail-info">
-        <p>{{ schoolData.description }}</p>
-        <div class="video-container" v-if="schoolData.video">
-          <video controls class="project-video">
-            <source :src="schoolData.video" type="video/mp4">
-            您的浏览器不支持视频播放。
-          </video>
+        <div class="degree-info">
+          <p class="major">
+            <span class="highlight">{{ schoolData.major }}</span>&nbsp;
+            <span class="period">{{ schoolData.period }}</span>
+          </p>
+          <p class="honors">
+            <span>{{ schoolData.honors }}</span>&nbsp;
+            <span class="GPA">GPA: {{ schoolData.GPA || 'GPA' }}{{ schoolData.ranking }}</span>&nbsp;
+          </p>
         </div>
-        <h3>技术栈</h3>
-        <ul>
-          <li v-for="(tech, index) in schoolData.technologies" :key="index">{{ tech }}</li>
-        </ul>
+        
+        <div class="modules">
+          <h3>主要课程</h3>
+          <ul>
+            <li v-for="(module, index) in schoolData.modules" :key="index">
+              {{ module }}
+            </li>
+          </ul>
+        </div>
+
       </div>
     </div>
   </div>
@@ -26,8 +34,8 @@ export default {
     schoolData: {
       type: Object,
       required: true,
-    },
-  },
+    }
+  }
 };
 </script>
 
@@ -36,38 +44,47 @@ export default {
   padding: 20px;
 }
 
-.close-btn {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  padding: 8px 16px;
-  border: none;
-  background: #42b983;
-  color: white;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
 .detail-content {
-  padding: 40px 20px;
+  padding: 20px;
 }
 
-.video-container {
-  margin: 20px 0;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.period {
+  color: #666;
+  font-size: 1.1em;
+  margin-bottom: 10px;
+  text-align: right;
 }
 
-.project-video {
-  width: 100%;
-  max-width: 100%;
-  display: block;
+.degree-info {
+  margin: 15px 0;
+}
+
+.major {
+  font-size: 1.2em;
+  color: #2c3e50;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.honors {
+  color: #666;
+}
+
+.highlight {
+  color: #2e5b87;
+  font-weight: bold;
+  margin-right: 15px;
+}
+
+.ranking {
+  color: #666;
 }
 
 h3 {
-  margin: 20px 0 10px;
   color: #2c3e50;
+  margin: 20px 0 10px;
+  font-size: 1.1em;
 }
 
 ul {
@@ -77,7 +94,40 @@ ul {
 
 li {
   margin: 8px 0;
-  padding: 5px 0;
   color: #666;
+}
+
+.scholarship-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px dashed #eee;
+}
+
+.year {
+  color: #666;
+}
+
+.award {
+  color: #42b983;
+  font-weight: 500;
+}
+
+.modules ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.modules li {
+  background: #f8f9fa;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.modules li:hover {
+  background: #e9ecef;
+  transform: translateX(5px);
 }
 </style>

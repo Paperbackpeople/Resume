@@ -58,6 +58,9 @@
     font-size: 24px;
     margin-bottom: 20px;
   }
+  .education-section h2 {
+    color: #2e5b87;
+    }
   
   .education-item {
     display: flex;

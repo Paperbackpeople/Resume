@@ -7,7 +7,10 @@
           :key="index" 
           class="project-item"
           @click="openProject(index)">
-          <h3>{{ project.name }}</h3>
+          <div class="project-header">
+            <h3>{{ project.name }}</h3>
+            <span class="project-time" v-if="project.time">{{ project.time }}</span>
+          </div>
           <p class="brief">{{ project.brief }}</p>
         </div>
       </div>
@@ -21,13 +24,15 @@
       return {
         projects: [
           {
-            name: '项目一',
-            brief: '简短描述',
+            name: '中国食品配送系统',
+            brief: '一个基于Vue和Spring Boot的食品配送系统，实现了用户注册、登录、食品浏览、购物车、订单管理等功能。',
+            time: '2024.05-2024.09',
             component: 'ProjectOne'
           },
           {
-            name: '项目二',
-            brief: '简短描述',
+            name: '分布式寻宝游戏',
+            brief: '一个无中心化的分布式寻宝游戏，利用Java RMI实现去中心化注册表，并通过选举机制动态确定主服务器和备份服务器，提供容错和高可用性。',
+            time: '2024.09-2024.11',
             component: 'ProjectTwo'
           },
           {
@@ -51,7 +56,9 @@
   .project-experience-section {
     margin-bottom: 30px;
   }
-  
+  .project-experience-section h2 {
+    color: #2e5b87;
+    }
   .section-title {
     font-size: 24px;
     margin-bottom: 20px;
@@ -76,5 +83,19 @@
   .brief {
     margin: 5px 0;
     color: #666;
+  }
+  
+  .project-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  
+  .project-time {
+    color: #666;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: right;
   }
   </style>

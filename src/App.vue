@@ -6,7 +6,6 @@
         <PersonalInfo />
         <EducationSection @open-education-detail="handleEducationDetailOpen" />
 
-        <!-- 使用ProjectExperience组件，从中获得项目列表和事件 -->
         <ProjectExperience @open-project-detail="handleProjectDetailOpen" />
       </div>
     </div>
@@ -63,7 +62,6 @@ export default {
   },
   methods: {
     handleProjectDetailOpen(selectedProject) {
-      // 如果此时已有学历或项目详情显示，需要先关闭当前详情再打开新的
       if (this.showDetail) {
         this.handleDetailClose();
         this.$nextTick(() => {
@@ -73,14 +71,59 @@ export default {
           this.showDetail = true;
         });
       } else {
-        // 如果没有详情在展示，直接打开项目详情
+        // 如果���有详情在展示，直接打开项目详情
         this.currentSchool = null;
         this.currentProject = selectedProject;
         this.showDetail = true;
       }
     },
     handleEducationDetailOpen(schoolData) {
-      // 如果此时已有项目或学历详情显示，先关闭再打开
+      // 为BUPT准备详细数据
+      if (schoolData.component === 'Bupt') {
+        schoolData = {
+          ...schoolData,
+          name: '北京邮电大学（Queen Mary University of London 合作办学）',
+          period: '2019.09-2023.06',
+          major: '电子商务及法律',
+          GPA : '3.7/4.0',
+          honors: '一等荣誉学位',
+          ranking: '前20%',
+          modules: [
+            '数据结构与算法',
+            'Java高级编程',
+            '数据库',
+            '数字电路设计',
+            '软件工程',
+            '安全与认证',
+            '网络协议',
+            '信息与隐私保护法'
+          ],
+          scholarships: [
+            { year: '2019-2020', award: '二等奖学金' },
+            { year: '2020-2021', award: '二等奖学金' },
+            { year: '2021-2022', award: '一等奖学金' }
+          ]
+        };
+      }
+      // 为NUS准备详细数据
+      if (schoolData.component === 'Nus') {
+        schoolData = {
+          ...schoolData,
+          name: '新加坡国立大学',
+          period: '2024.01-2025.11',
+          major: '计算机科学',
+          GPA : '4.5/5.0',
+          modules: [
+            '神经网络和深度学习',
+            '分布式系统',
+            '分布式数据库',
+            '软件工程与应用架构',
+            '软件开发',
+            '人工智能'
+          ]
+        };
+      }
+
       if (this.showDetail) {
         this.handleDetailClose();
         this.$nextTick(() => {
