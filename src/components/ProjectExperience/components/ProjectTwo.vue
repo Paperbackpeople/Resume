@@ -65,13 +65,21 @@
   .detail-info {
     margin-top: 20px;
   }
-  
+  .video-container {
+  width: 100%; /* 父容器宽度占 80% */
+  max-width: 1000px; /* 最大宽度 */
+  max-height: 500px; /* 最大高度 */
+  margin: 20px auto; /* 上下 20px 间距，水平居中 */
+  border-radius: 8px; /* 圆角 */
+  overflow: hidden; /* 隐藏超出部分 */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* 添加阴影 */
+  }
   .project-video {
-    width: 100%;
-    max-width: 600px;
-    margin-top: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 100%; /* 填满父容器 */
+    height: auto; /* 高度自动适配 */
+    max-height: 400px; /* 最大高度限制 */
+    object-fit: contain; /* 保持完整内容显示 */
+    display: block; /* 独占一行 */
   }
   
   ul {

@@ -5,8 +5,9 @@
         <h1>个人简历</h1>
         <PersonalInfo />
         <EducationSection @open-education-detail="handleEducationDetailOpen" />
-
         <ProjectExperience @open-project-detail="handleProjectDetailOpen" />
+        <InternshipExperience @open-internship-detail="handleInternshipDetailOpen" />
+        <SkillsSection @open-skill-detail="handleSkillDetailOpen" />
       </div>
     </div>
 
@@ -21,6 +22,12 @@
 
           <!-- 项目详情 -->
           <component v-else-if="currentProject" :is="currentProject.component" @close="handleDetailClose" />
+
+          <!-- 实习详情 -->
+          <component v-else-if="currentInternship" :is="currentInternship.component" @close="handleDetailClose" />    
+
+          <!-- 技能详情 -->
+          <component v-else-if="currentSkill" :is="currentSkill.component" :skill-data="currentSkill" @close="handleDetailClose" />
         </div>
       </div>
     </transition>
@@ -39,6 +46,13 @@ import ProjectExperience from './components/ProjectExperience/index.vue'
 import ProjectOne from './components/ProjectExperience/components/ProjectOne.vue'
 import ProjectTwo from './components/ProjectExperience/components/ProjectTwo.vue'
 import ProjectThree from './components/ProjectExperience/components/ProjectThree.vue'
+import ProjectFour from './components/ProjectExperience/components/ProjectFour.vue'
+import InternshipExperience from './components/Internship/index.vue'
+import InternshipOne from './components/Internship/components/InternshipOne.vue'
+import InternshipTwo from './components/Internship/components/InternshipTwo.vue'
+
+// 在 script 部分添加导入
+import SkillsSection from './components/Skills/index.vue'
 
 export default {
   name: 'App',
@@ -51,13 +65,20 @@ export default {
     ProjectExperience,
     ProjectOne,
     ProjectTwo,
-    ProjectThree
+    ProjectThree,
+    ProjectFour,
+    InternshipExperience,
+    InternshipOne,
+    InternshipTwo,
+    SkillsSection,
   },
   data() {
     return {
       showDetail: false,
       currentProject: null,
-      currentSchool: null
+      currentSchool: null,
+      currentInternship: null,
+      currentSkill: null,
     }
   },
   methods: {
@@ -71,12 +92,28 @@ export default {
           this.showDetail = true;
         });
       } else {
-        // 如果���有详情在展示，直接打开项目详情
+        // 如果有详情在展示，直接打开项目详情
         this.currentSchool = null;
         this.currentProject = selectedProject;
         this.showDetail = true;
       }
     },
+
+    handleInternshipDetailOpen(internship) {
+      if (this.showDetail) {
+        this.handleDetailClose();
+        this.$nextTick(() => {
+          this.currentProject = null;
+          this.currentInternship = internship;
+          this.showDetail = true;
+        });
+      } else {
+        this.currentProject = null;
+        this.currentInternship = internship;
+        this.showDetail = true;
+      } 
+    },
+
     handleEducationDetailOpen(schoolData) {
       // 为BUPT准备详细数据
       if (schoolData.component === 'Bupt') {
@@ -137,6 +174,26 @@ export default {
         this.showDetail = true;
       }
     },
+
+    handleSkillDetailOpen(skill) {
+      if (this.showDetail) {
+        this.handleDetailClose();
+        this.$nextTick(() => {
+          this.currentProject = null;
+          this.currentSchool = null;
+          this.currentInternship = null;
+          this.currentSkill = skill;
+          this.showDetail = true;
+        });
+      } else {
+        this.currentProject = null;
+        this.currentSchool = null;
+        this.currentInternship = null;
+        this.currentSkill = skill;
+        this.showDetail = true;
+      }
+    },
+
     handleDetailClose() {
       this.showDetail = false;
       this.currentProject = null;
@@ -211,19 +268,39 @@ export default {
   position: absolute;
   top: 20px;
   right: 20px;
-  padding: 8px 16px;
+  padding: 10px 20px;
   border: none;
-  background: #42b983;
+  background: linear-gradient(90deg, #42b983, #2e5b87);
   color: white;
-  border-radius: 4px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 25px;
   cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
+
+.close-btn:hover {
+  background: linear-gradient(90deg, #2e5b87, #42b983);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.close-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
 
 .section {
   margin-bottom: 30px;
 }
 
-h1,
+h1 {
+  color: #2c3e50;
+  text-align: center; 
+}
+
 h2,
 h3 {
   color: #2c3e50;

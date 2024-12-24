@@ -9,6 +9,7 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ./ssl:/etc/nginx/ssl:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /mnt/blockstorage:/mnt/blockstorage:ro # 挂载视频目录
     networks:
       - app-network
     restart: always
