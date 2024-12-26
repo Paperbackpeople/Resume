@@ -2,7 +2,12 @@
   <div class="container" :class="{ 'show-detail': showDetail }">
     <div class="resume-container">
       <div class="resume" :class="{ 'shifted': showDetail }">
-        <h1>个人简历</h1>
+        <h1>{{ $t('resume') }}</h1>
+        <div class="language-toggle-container"> 
+          <button class="language-toggle" @click="toggleLanguage">
+            {{ currentLanguage === 'zh' ? '中文｜En' : 'En｜中文' }}
+          </button>
+        </div>
         <PersonalInfo />
         <EducationSection @open-education-detail="handleEducationDetailOpen" />
         <ProjectExperience @open-project-detail="handleProjectDetailOpen" />
@@ -11,10 +16,10 @@
       </div>
     </div>
 
-    <!-- 单一详情面板 -->
+    <!-- 单一详情面板 -->     
     <transition name="slide">
       <div v-if="showDetail" class="detail-panel">
-        <button class="close-btn" @click="handleDetailClose">返回总览</button>
+        <button class="close-btn" @click="handleDetailClose">{{ $t('back') }}</button>
         <div class="detail-content">
           <!-- 教育详情 -->
           <component v-if="currentSchool" :is="currentSchool.component" :school-data="currentSchool"
@@ -35,6 +40,8 @@
 </template>
 
 <script>
+import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import PersonalInfo from './components/PersonalInfo/index.vue';
 import EducationSection from './components/Education/index.vue';
 import Bupt from './components/Education/components/buptSection.vue';
@@ -50,12 +57,29 @@ import ProjectFour from './components/ProjectExperience/components/ProjectFour.v
 import InternshipExperience from './components/Internship/index.vue'
 import InternshipOne from './components/Internship/components/InternshipOne.vue'
 import InternshipTwo from './components/Internship/components/InternshipTwo.vue'
-
-// 在 script 部分添加导入
 import SkillsSection from './components/Skills/index.vue'
 
 export default {
   name: 'App',
+  setup() {
+    const { locale } = useI18n();
+    const currentLanguage = ref('zh');
+
+    const toggleLanguage = () => {
+      if (locale.value === 'zh') {
+        locale.value = 'en';
+        currentLanguage.value = 'en';
+      } else {
+        locale.value = 'zh';
+        currentLanguage.value = 'zh';
+      }
+    };
+
+    return {
+      toggleLanguage,
+      currentLanguage
+    };
+  },
   components: {
     PersonalInfo,
     EducationSection,
@@ -339,4 +363,31 @@ h3 {
 .detail-panel::-webkit-scrollbar-track {
   background: #f1f1f1;
 }
+
+.language-toggle {
+  background: linear-gradient(90deg, #8a96ab, #545670); /* 深紫到深蓝的渐变 */
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  margin-bottom: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.language-toggle:hover {
+  background: linear-gradient(90deg, #6b6d8e, #57637d); /* 反转渐变颜色 */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+
+.language-toggle-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
 </style>

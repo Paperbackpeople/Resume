@@ -1,6 +1,6 @@
 <template>
     <section class="education-section">
-      <h2 class="section-title">教育经历</h2>
+      <h2 class="section-title">{{ $t('education') }}</h2>
       <div class="education-list">
         <div 
           v-for="(edu, index) in educationList" 
@@ -10,8 +10,8 @@
           <div class="edu-period">{{ edu.period }}</div>
           <div class="edu-content">
             <h3 class="school-name">{{ edu.school }}</h3>
-            <p class="major">专业：{{ edu.major }}</p>
-            <p class="degree">学位：{{ edu.degree }}</p>
+            <p class="major">{{ $t('major') }}: {{ edu.major }}</p>
+            <p class="degree">{{ $t('degree') }}: {{ edu.degree }}</p>
           </div>
         </div>
       </div>

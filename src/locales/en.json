@@ -1,0 +1,42 @@
+{
+  "resume": "Resume",
+  "personalInfo": "Personal Information",
+  "education": "Education",
+  "major": "Major",
+  "degree": "Degree",
+  "projectExperience": "Project Experience",
+  "internshipExperience": "Internship Experience",
+  "skills": "Professional Skills",
+  "backToOverview": "Back to Overview",
+  "skillsList": [
+    {
+      "category": "Programming Languages",
+      "brief": "Java (Proficient), Python (Proficient), C (Familiar), MATLAB, SQL, HTML, Pandas"
+    },
+    {
+      "category": "Web Development",
+      "brief": "Springboot, Redis, Vue.js, React, Flask"
+    },
+    {
+      "category": "Frameworks & Libraries",
+      "brief": "TensorFlow, PyTorch, MyBatis, GAMS, Transformer Models, LLM"
+    },
+    {
+      "category": "Databases",
+      "brief": "MySQL, PostgreSQL, MongoDB, Citus (PostgreSQL Cluster)"
+    },
+    {
+      "category": "DevOps & Cloud",
+      "brief": "Docker, Kubernetes (k8s), AWS, Ali Cloud"
+    },
+    {
+      "category": "Tools",
+      "brief": "Git, Linux, Anaconda, Microsoft Office"
+    },
+    {
+      "category": "Languages",
+      "brief": "Chinese (Native), English (IELTS 7.0)"
+    }
+  ]
+}
+  

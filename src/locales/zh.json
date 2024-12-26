@@ -1,0 +1,57 @@
+{
+  "resume": "个人简历",
+  "personalInfo": "个人信息",
+  "education": "教育经历",
+  "major": "专业",
+  "degree": "学位",
+  "projectExperience": "项目经验",
+  "internshipExperience": "实习经历",
+  "skills": "专业技能",
+  "backToOverview": "返回总览",
+  "skillsList": [
+    {
+      "category": "编程语言",
+      "brief": "Java（熟练）、Python（熟练）、C（掌握）、MATLAB、SQL、HTML、Pandas"
+    },
+    {
+      "category": "Web开发",
+      "brief": "Springboot、Redis、Vue.js、React、Flask"
+    },
+    {
+      "category": "框架与库",
+      "brief": "TensorFlow、PyTorch、MyBatis、GAMS、Transformer Models、LLM"
+    },
+    {
+      "category": "数据库",
+      "brief": "MySQL、PostgreSQL、MongoDB、Citus（PostgreSQL集群）"
+    },
+    {
+      "category": "DevOps与云计算",
+      "brief": "Docker、Kubernetes (k8s)、AWS、Ali Cloud"
+    },
+    {
+      "category": "其他工具",
+      "brief": "Git、Linux、Anaconda、Microsoft Office"
+    },
+    {
+      "category": "语言",
+      "brief": "中文（母语）、英语（IELTS 7.0）"
+    }
+  ],
+  "educationList": [
+    {
+      "period": "2023-2025",
+      "school": "新加坡国立大学",
+      "major": "计算机科学与技术",
+      "degree": "计算机硕士",
+      "component": "Nus"
+    },
+    {
+      "period": "2019-2023",
+      "school": "北京邮电大学",
+      "major": "电子商务及法律",
+      "degree": "管理学学士 + 工学学士",
+      "component": "Bupt"
+    }
+  ]
+} 

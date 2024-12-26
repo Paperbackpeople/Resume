@@ -1,7 +1,10 @@
 const { defineConfig } = require('@vue/cli-service')
+
 module.exports = defineConfig({
-  transpileDependencies: [
-    // 在这里列出需要转译的依赖包名称
-  ],
-  publicPath: '/'
+  transpileDependencies: true,
+  configureWebpack: {
+    define: {
+      __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false'
+    }
+  }
 })
