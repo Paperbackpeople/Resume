@@ -53,14 +53,17 @@
       "school": "National University of Singapore",
       "major": "Computer Science",
       "degree": "Master of Computing",
-      "component": "Nus"
+      "component": "Nus",
+      "logo": "https://www.wangzhaoyu.com/videos/nus.png"
+
     },
     {
       "period": "2019-2023",
       "school": "Beijing University of Posts and Telecommunications",
       "major": "E-Commerce Engineering & Law",
       "degree": "Bachelor of Management + Bachelor of Science",
-      "component": "Bupt"
+      "component": "Bupt",
+      "logo": "https://www.wangzhaoyu.com/videos/bupt.png"
     }
   ],
   "internships": [

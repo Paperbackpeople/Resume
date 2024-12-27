@@ -119,6 +119,7 @@ export default defineComponent({
 .section-title {
   font-size: 24px;
   margin-bottom: 20px;
+  color: #2e5b87;
 }
 
 </style>

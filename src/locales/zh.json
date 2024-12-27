@@ -53,14 +53,18 @@
       "school": "新加坡国立大学",
       "major": "计算机科学与技术",
       "degree": "计算机硕士",
-      "component": "Nus"
+      "component": "Nus",
+      "logo": "https://www.wangzhaoyu.com/videos/nus.png"
+
     },
     {
       "period": "2019-2023",
       "school": "北京邮电大学",
       "major": "电子商务及法律",
       "degree": "管理学学士 + 工学学士",
-      "component": "Bupt"
+      "component": "Bupt",
+      "logo": "https://www.wangzhaoyu.com/videos/bupt.png"
+
     }
   ],
   "internships": [
