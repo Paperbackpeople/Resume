@@ -22,17 +22,34 @@
         <button class="close-btn" @click="handleDetailClose">{{ $t('backToOverview') }}</button>
         <div class="detail-content">
           <!-- 教育详情 -->
-          <component v-if="currentSchool" :is="currentSchool.component" :school-data="currentSchool"
-            @close="handleDetailClose" />
+          <component
+            v-if="currentSchool"
+            :is="currentSchool.component"
+            :school-data="currentSchool"
+            @close="handleDetailClose"
+          />
 
           <!-- 项目详情 -->
-          <component v-else-if="currentProject" :is="currentProject.component" @close="handleDetailClose" />
+          <component
+            v-else-if="currentProject"
+            :is="currentProject.component"
+            @close="handleDetailClose"
+          />
 
           <!-- 实习详情 -->
-          <component v-else-if="currentInternship" :is="currentInternship.component" @close="handleDetailClose" />    
+          <component
+            v-else-if="currentInternship"
+            :is="currentInternship.component"
+            @close="handleDetailClose"
+          />
 
           <!-- 技能详情 -->
-          <component v-else-if="currentSkill" :is="currentSkill.component" :skill-data="currentSkill" @close="handleDetailClose" />
+          <component
+            v-else-if="currentSkill"
+            :is="currentSkill.component"
+            :skill-data="currentSkill"
+            @close="handleDetailClose"
+          />
         </div>
       </div>
     </transition>
@@ -305,8 +322,7 @@ export default {
 };
 </script>
 
-<style>
-/* 样式基本保持不变 */
+<style scoped>
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -315,6 +331,7 @@ export default {
   min-height: 100vh;
 }
 
+/* PC端(大屏)布局：left resume + right detail */
 .resume-container {
   position: fixed;
   top: 0;
@@ -341,6 +358,7 @@ export default {
   max-width: 40%;
 }
 
+/* 右侧详情面板 */
 .detail-panel {
   position: fixed;
   right: 0;
@@ -355,17 +373,18 @@ export default {
   border: 1px solid #ccc;
 }
 
+/* 动画 */
 .slide-enter-active,
 .slide-leave-active {
   transition: transform 0.5s ease, opacity 0.5s ease;
 }
-
 .slide-enter-from,
 .slide-leave-to {
   transform: translateX(100%);
   opacity: 0;
 }
 
+/* 关闭按钮 */
 .close-btn {
   position: absolute;
   top: 20px;
@@ -381,43 +400,39 @@ export default {
   transition: all 0.3s ease;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
-
 .close-btn:hover {
   background: linear-gradient(90deg, #2e5b87, #42b983);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
   transform: translateY(-2px);
 }
-
 .close-btn:active {
   transform: translateY(1px);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
 }
 
+/* 各区块 */
 .section {
   margin-bottom: 30px;
 }
-
 h1 {
   color: #2c3e50;
   text-align: center; 
 }
-
 h2,
 h3 {
   color: #2c3e50;
 }
-
 .detail-content {
   padding: 40px 20px;
 }
 
+/* 视频容器 */
 .video-container {
   margin: 20px 0;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
-
 .project-video {
   width: 100%;
   max-width: 100%;
@@ -429,20 +444,19 @@ h3 {
 .detail-panel::-webkit-scrollbar {
   width: 6px;
 }
-
 .resume-container::-webkit-scrollbar-thumb,
 .detail-panel::-webkit-scrollbar-thumb {
   background: #ccc;
   border-radius: 3px;
 }
-
 .resume-container::-webkit-scrollbar-track,
 .detail-panel::-webkit-scrollbar-track {
   background: #f1f1f1;
 }
 
+/* 语言切换按钮 */
 .language-toggle {
-  background: linear-gradient(90deg, #8a96ab, #545670); /* 深紫到深蓝的渐变 */
+  background: linear-gradient(90deg, #8a96ab, #545670);
   color: white;
   border: none;
   padding: 5px 10px;
@@ -453,16 +467,89 @@ h3 {
   margin-bottom: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
-
 .language-toggle:hover {
-  background: linear-gradient(90deg, #6b6d8e, #57637d); /* 反转渐变颜色 */
+  background: linear-gradient(90deg, #6b6d8e, #57637d);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
   transform: translateY(-2px);
 }
-
 .language-toggle-container {
   display: flex;
   justify-content: center;
   margin-bottom: 20px;
 }
+
+/* ============== 响应式：小屏幕(手机)适配 ============== */
+@media (max-width: 768px) {
+  /* 让简历保持原位置或根据需求隐藏，这里示例保留简历容器 */
+  .resume-container {
+    position: static;
+    width: 100%;
+    height: auto;
+    padding: 10px;
+    margin-bottom: 20px;
+    box-shadow: none;
+  }
+
+  .resume {
+    max-width: 100%;
+    margin: 0 auto;
+    transform: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  .resume.shifted {
+    /* 如果想在手机端不让 resume 左移，可以去掉 transform */
+    transform: none;
+    max-width: 100%;
+  }
+
+  /* -------- 让详情面板覆盖全屏 -------- */
+  .detail-panel {
+    /* 保持固定定位，覆盖整个屏幕 */
+    position: fixed; 
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100vh;
+
+    margin: 0;            /* 去除任何外边距 */
+    box-shadow: none;     /* 去掉阴影 */
+    border: none;         /* 去掉边框 */
+    background: #fff;     /* 确保背景白色，覆盖下方内容 */
+    z-index: 999;         /* 保证面板在最上层 */
+    overflow-y: auto;     /* 如果内容超出，允许在面板里滚动 */
+    padding: 20px;        /* 你想要的内边距 */
+  }
+
+  /* 让关闭按钮在顶部可见 */
+  .close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+  }
+
+  /* 根据需要，你也可以把它居中或做成固定顶部导航的样式 */
+  /* 动画效果：从右侧滑入 */
+  .slide-enter-from,
+  .slide-leave-to {
+    transform: translateX(100%); /* 初始或最终在屏幕右侧之外 */
+    opacity: 0;
+  }
+  .slide-enter-active,
+  .slide-leave-active {
+    transition: transform 0.5s ease, opacity 0.5s ease;
+  }
+
+  /* 字体可适当变小一点 */
+  h1 {
+    font-size: 1.2rem;
+  }
+  h2 {
+    font-size: 1rem;
+  }
+  h3 {
+    font-size: 0.9rem;
+  }
+}
+
 </style>

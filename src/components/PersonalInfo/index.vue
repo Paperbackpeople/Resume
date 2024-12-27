@@ -4,7 +4,7 @@
     <div class="info-container">
       <div class="text-info">
         <p>{{ $t('name') }}</p>
-        <p>{{ $t('emailPrefix') }}{{ $t('emailAddress') }}</p>
+        <p>{{ $t('emailPrefix') }}e1326002@u.nus.edu</p>
         <p>{{ $t('phone') }}</p>
         <p>{{ $t('zhengzhi') }}</p>
         <p>{{ $t('age') }}</p>
