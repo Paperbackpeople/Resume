@@ -1,32 +1,32 @@
 <template>
   <div class="education-detail">
     <div class="detail-content">
-      <h2>{{ schoolData.name }}</h2>
+      <h2>{{ school.name }}</h2>
       <div class="detail-info">
         <div class="degree-info">
           <p class="major">
-            <span class="highlight">{{ schoolData.major }}</span>&nbsp;
-            <span class="period">{{ schoolData.period }}</span>
+            <span class="highlight">{{ school.major }}</span>&nbsp;
+            <span class="period">{{ school.period }}</span>
           </p>
           <p class="honors">
-            <span>{{ schoolData.honors }}</span>&nbsp;
-            <span class="GPA">GPA: {{ schoolData.GPA || 'GPA' }}（{{ schoolData.ranking }}）</span>&nbsp;
+            <span>{{ school.honors }}</span>&nbsp;
+            <span class="GPA">GPA: {{ school.GPA || 'GPA' }}（{{ school.ranking }}）</span>&nbsp;
           </p>
         </div>
         
         <div class="modules">
-          <h3>主要课程</h3>
+          <h3>{{ $t('modules') }}</h3>
           <ul>
-            <li v-for="(module, index) in schoolData.modules" :key="index">
+            <li v-for="(module, index) in school.modules" :key="index">
               {{ module }}
             </li>
           </ul>
         </div>
 
         <div class="scholarships">
-          <h3>奖学金</h3>
+          <h3>{{ $t('scholarships') }}</h3>
           <ul>
-            <li v-for="(scholarship, index) in schoolData.scholarships" 
+            <li v-for="(scholarship, index) in school.scholarships" 
                 :key="index"
                 class="scholarship-item">
               <span class="year">{{ scholarship.year }}</span>
@@ -40,11 +40,18 @@
 </template>
 
 <script>
+import { computed } from 'vue';
 export default {
   props: {
     schoolData: {
       type: Object,
       required: true,
+    }
+  },
+  setup(props) {
+    const school = computed(() => props.schoolData)
+    return {
+      school
     }
   }
 };

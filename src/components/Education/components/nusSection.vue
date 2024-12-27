@@ -15,7 +15,7 @@
         </div>
         
         <div class="modules">
-          <h3>主要课程</h3>
+          <h3>{{ $t('modules') }}</h3>
           <ul>
             <li v-for="(module, index) in schoolData.modules" :key="index">
               {{ module }}

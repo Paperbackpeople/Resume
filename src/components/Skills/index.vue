@@ -1,9 +1,9 @@
 <template>
   <section class="skills-section">
-    <h2 class="section-title">{{ $t('skills') }}</h2>
+    <h2 class="section-title">{{ t('skills') }}</h2>
     <div class="skills-container">
       <ul>
-        <li v-for="(skill, index) in skills " :key="index" class="skill-item">
+        <li v-for="(skill, index) in skillsList" :key="index" class="skill-item">
           <strong>{{ skill.category }}</strong>: {{ skill.brief }}
         </li>
       </ul>
@@ -12,20 +12,26 @@
 </template>
 
 <script>
-import { useI18n } from 'vue-i18n';
+import { useI18n } from 'vue-i18n'
+import { ref, watch} from 'vue'
 
 export default {
   name: 'SkillsSection',
   setup() {
-    const {t} = useI18n();
-    const skills = t('skillsList', { returnObjects: true });
-    console.log(skills);
+    const { t, messages, locale } = useI18n()
+    const skillsList = ref(messages.value[locale.value].skillsList)
+    
+    // 监听语言变化
+    watch(locale, (newLocale) => {
+      skillsList.value = messages.value[newLocale].skillsList
+    })
+  
     return {
       t,
-      skills
-    };
+      skillsList
+    }
   }
-};
+}
 </script>
 
 <style scoped>

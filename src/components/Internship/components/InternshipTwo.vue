@@ -1,25 +1,25 @@
 <template>
   <div class="internship-detail">
-    <h2>Dolby (北京)</h2>
+    <h2>Dolby ({{ $t('BeiJing') }})</h2>
     <div class="time-location">
       <span>2023.07-2024.01</span>
-      <span>北京</span>
+      <span>{{ $t('BeiJing') }}</span>
     </div>
     
     <div class="content">
-      <h3>工作内容</h3>
+      <h3>{{ $t('workDetail') }}</h3>
       <ul>
-        <li>参与 personal head-related-transfer-function（pHRTF）项目，负责耳部数据集的本地化采集及耳部检测网络的设计。</li>
-        <li>利用 CycleGAN 对耳部数据进行增强，包括耳戴耳机和耳饰的多种情况，提升训练数据多样性。</li>
-        <li>部署 Stable Diffusion WebUI 于 Linux，实验生成式 AI 内容，扩展数据集，最终提升准确率 4%。</li>
-        <li>开发脚本测试 pHRTF APK，评估耳部检测网络在不同设备上的鲁棒性，并生成可视化报告。</li>
-        <li>创建基于 Flask、Vue 和 MySQL 的数据库管理系统，支持数据统计与下载，加速团队开发所需数据的获取。</li>
+        <li>{{ $t('detailSix') }}</li>
+        <li>{{ $t('detailSeven') }}</li>
+        <li>{{ $t('detailEight') }}</li>
+        <li>{{ $t('detailNine') }}</li>
+        <li>{{ $t('detailTen') }}</li>
       </ul>
-      <p class="conclusion-text">数据增强的示例：</p>
+      <p class="conclusion-text">{{ $t('augmented') }}</p>
       <!-- 在此处添加图片 -->
       <img src="https://www.wangzhaoyu.com/videos/dolby.jpg" alt="数据监控示例视频截图" class="example-image">
       <!-- 图片添加结束 -->
-      <h3>技术栈</h3>
+      <h3>{{ $t('techStack') }}</h3>
       <ul>
         <li>Python</li>
         <li>CycleGAN、Stable Diffusion</li>

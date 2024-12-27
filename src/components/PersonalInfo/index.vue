@@ -1,13 +1,13 @@
 <template>
   <div class="section">
-    <h2>个人信息</h2>
+    <h2>{{ $t('personalInfo') }}</h2>
     <div class="info-container">
       <div class="text-info">
-        <p>姓名：王兆宇</p>
-        <p>邮箱：e1326002@u.nus.edu</p>
-        <p>电话：+86 15690701976 / +65 89353349</p>
-        <p>政治面貌：中共党员</p>
-        <p>年龄：23</p>
+        <p>{{ $t('name') }}</p>
+        <p>{{ $t('emailPrefix') }}{{ $t('emailAddress') }}</p>
+        <p>{{ $t('phone') }}</p>
+        <p>{{ $t('zhengzhi') }}</p>
+        <p>{{ $t('age') }}</p>
       </div>
       <img class="profile-photo" src="profile.jpg" alt="个人照片" />
     </div>

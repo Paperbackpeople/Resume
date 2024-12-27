@@ -1,6 +1,6 @@
 <template>
   <section class="internship-section">
-    <h2 class="section-title">实习经历</h2>
+    <h2 class="section-title">{{ $t('internshipExperience') }}</h2>
     <div class="internship-list">
       <div
         v-for="(internship, index) in internships"
@@ -34,51 +34,32 @@
 </template>
 
 <script>
-export default {
+import { defineComponent, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+export default defineComponent({
   name: 'InternshipExperience',
-  data() {
+  setup(props, { emit }) {
+    const { t, messages, locale } = useI18n();
+    const internships = ref(messages.value[locale.value].internships);
+
+    // 监听语言变化
+    watch(locale, (newLocale) => {
+      internships.value = messages.value[newLocale].internships;
+    });
+
+    const openInternship = (index) => {
+      const selectedInternship = internships.value[index];
+      emit('open-internship-detail', selectedInternship);
+    };
+
     return {
-      internships: [
-        {
-          name: 'Level 3 AI, Singapore',
-          brief:
-            '为多家公司开发AI客服，设计并构建聊天所需的数据库，深度参与项目中相关算法和流程的开发工作。',
-          time: '2024.09-至今',
-          component: 'InternshipOne',
-          link: 'https://www.lv3.ai',
-          clickable: true,
-        },
-        {
-          name: 'Dolby, Beijing',
-          brief: '参与pHRTF项目，完成耳部数据集采集、网络设计和数据分析。',
-          time: '2023.07-2024.01',
-          component: 'InternshipTwo',
-          clickable: true,
-        },
-        {
-          name: '北京 ZX-CE 科技有限公司',
-          brief: '设计咖啡店微信小程序用户界面，并参与搜索引擎优化分析。',
-          time: '2022.08-2022.09',
-          component: 'InternshipThree',
-          clickable: false,
-        },
-        {
-          name: '模式识别与智能系统实验室 (北京)',
-          brief: '参与跨模态行人重识别方法研究，完成数据预处理和模型可视化。',
-          time: '2022.02-2022.06',
-          component: 'InternshipFour',
-          clickable: false,
-        },
-      ],
+      t,
+      internships,
+      openInternship,
     };
   },
-  methods: {
-    openInternship(index) {
-      const selectedInternship = this.internships[index];
-      this.$emit('open-internship-detail', selectedInternship);
-    },
-  },
-};
+});
 </script>
 
 <style scoped>

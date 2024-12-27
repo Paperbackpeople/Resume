@@ -19,7 +19,7 @@
     <!-- 单一详情面板 -->     
     <transition name="slide">
       <div v-if="showDetail" class="detail-panel">
-        <button class="close-btn" @click="handleDetailClose">{{ $t('back') }}</button>
+        <button class="close-btn" @click="handleDetailClose">{{ $t('backToOverview') }}</button>
         <div class="detail-content">
           <!-- 教育详情 -->
           <component v-if="currentSchool" :is="currentSchool.component" :school-data="currentSchool"
@@ -40,52 +40,31 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
+
+// 引入组件
 import PersonalInfo from './components/PersonalInfo/index.vue';
 import EducationSection from './components/Education/index.vue';
 import Bupt from './components/Education/components/buptSection.vue';
 import Nus from './components/Education/components/nusSection.vue';
-import Mit from './components/Education/components/mitSection.vue';
-
-// 引入刚才编写的ProjectExperience/index.vue
-import ProjectExperience from './components/ProjectExperience/index.vue'
-import ProjectOne from './components/ProjectExperience/components/ProjectOne.vue'
-import ProjectTwo from './components/ProjectExperience/components/ProjectTwo.vue'
-import ProjectThree from './components/ProjectExperience/components/ProjectThree.vue'
-import ProjectFour from './components/ProjectExperience/components/ProjectFour.vue'
-import InternshipExperience from './components/Internship/index.vue'
-import InternshipOne from './components/Internship/components/InternshipOne.vue'
-import InternshipTwo from './components/Internship/components/InternshipTwo.vue'
-import SkillsSection from './components/Skills/index.vue'
+import ProjectExperience from './components/ProjectExperience/index.vue';
+import ProjectOne from './components/ProjectExperience/components/ProjectOne.vue';
+import ProjectTwo from './components/ProjectExperience/components/ProjectTwo.vue';
+import ProjectThree from './components/ProjectExperience/components/ProjectThree.vue';
+import ProjectFour from './components/ProjectExperience/components/ProjectFour.vue';
+import InternshipExperience from './components/Internship/index.vue';
+import InternshipOne from './components/Internship/components/InternshipOne.vue';
+import InternshipTwo from './components/Internship/components/InternshipTwo.vue';
+import SkillsSection from './components/Skills/index.vue';
 
 export default {
   name: 'App',
-  setup() {
-    const { locale } = useI18n();
-    const currentLanguage = ref('zh');
-
-    const toggleLanguage = () => {
-      if (locale.value === 'zh') {
-        locale.value = 'en';
-        currentLanguage.value = 'en';
-      } else {
-        locale.value = 'zh';
-        currentLanguage.value = 'zh';
-      }
-    };
-
-    return {
-      toggleLanguage,
-      currentLanguage
-    };
-  },
   components: {
     PersonalInfo,
     EducationSection,
     Bupt,
     Nus,
-    Mit,
     ProjectExperience,
     ProjectOne,
     ProjectTwo,
@@ -96,57 +75,27 @@ export default {
     InternshipTwo,
     SkillsSection,
   },
-  data() {
-    return {
-      showDetail: false,
-      currentProject: null,
-      currentSchool: null,
-      currentInternship: null,
-      currentSkill: null,
-    }
-  },
-  methods: {
-    handleProjectDetailOpen(selectedProject) {
-      if (this.showDetail) {
-        this.handleDetailClose();
-        this.$nextTick(() => {
-          // 确保在关闭原有详情后再打开项目详情
-          this.currentSchool = null;
-          this.currentProject = selectedProject;
-          this.showDetail = true;
-        });
-      } else {
-        // 如果有详情在展示，直接打开项目详情
-        this.currentSchool = null;
-        this.currentProject = selectedProject;
-        this.showDetail = true;
-      }
-    },
+  setup() {
+    // 1. 定义国际化和当前语言
+    const { locale } = useI18n();
+    const currentLanguage = ref('zh');
 
-    handleInternshipDetailOpen(internship) {
-      if (this.showDetail) {
-        this.handleDetailClose();
-        this.$nextTick(() => {
-          this.currentProject = null;
-          this.currentInternship = internship;
-          this.showDetail = true;
-        });
-      } else {
-        this.currentProject = null;
-        this.currentInternship = internship;
-        this.showDetail = true;
-      } 
-    },
+    // 2. 定义响应式数据
+    const showDetail = ref(false);
+    const currentProject = ref(null);
+    const currentSchool = ref(null);
+    const currentInternship = ref(null);
+    const currentSkill = ref(null);
 
-    handleEducationDetailOpen(schoolData) {
-      // 为BUPT准备详细数据
-      if (schoolData.component === 'Bupt') {
-        schoolData = {
-          ...schoolData,
+    // 3. 定义获取学校数据的函数
+    const getBuptData = (lang) => {
+      if (lang === 'zh') {
+        return {
+          component: 'Bupt',
           name: '北京邮电大学（Queen Mary University of London 合作办学）',
           period: '2019.09-2023.06',
           major: '电子商务及法律',
-          GPA : '3.7/4.0',
+          GPA: '3.7/4.0',
           honors: '一等荣誉学位',
           ranking: '前20%',
           modules: [
@@ -165,15 +114,42 @@ export default {
             { year: '2021-2022', award: '一等奖学金' }
           ]
         };
+      } else {
+        return {
+          component: 'Bupt',
+          name: 'Beijing University of Posts and Telecommunications (Cooperate with Queen Mary University of London)',
+          period: '2019.09-2023.06',
+          major: 'E-commerce Engineering & Law',
+          GPA: '3.7/4.0',
+          honors: 'First Class Honours',
+          ranking: 'Top 20%',
+          modules: [
+            'Data Structures and Algorithms',
+            'Advanced Java Programming',
+            'Database',
+            'Digital Circuit Design',
+            'Software Engineering',
+            'Security and Authentication',
+            'Network Protocols',
+            'Information and Privacy Law'
+          ],
+          scholarships: [
+            { year: '2019-2020', award: 'Second Class Scholarship' },
+            { year: '2020-2021', award: 'Second Class Scholarship' },
+            { year: '2021-2022', award: 'First Class Scholarship' }
+          ]
+        };
       }
-      // 为NUS准备详细数据
-      if (schoolData.component === 'Nus') {
-        schoolData = {
-          ...schoolData,
+    };
+
+    const getNusData = (lang) => {
+      if (lang === 'zh') {
+        return {
+          component: 'Nus',
           name: '新加坡国立大学',
           period: '2024.01-2025.11',
           major: '计算机科学',
-          GPA : '4.5/5.0',
+          GPA: '4.5/5.0',
           modules: [
             '神经网络和深度学习',
             '分布式系统',
@@ -183,52 +159,154 @@ export default {
             '人工智能'
           ]
         };
+      } else {
+        return {
+          component: 'Nus',
+          name: 'National University of Singapore',
+          period: '2024.01-2025.11',
+          major: 'Computer Science',
+          GPA: '4.5/5.0',
+          modules: [
+            'Neural Networks and Deep Learning',
+            'Distributed Systems',
+            'Distributed Databases',
+            'Software Engineering and Application Architecture',
+            'Software Development',
+            'Artificial Intelligence'
+          ]
+        };
+      }
+    };
+
+    // 4. 切换语言
+    const toggleLanguage = () => {
+      if (locale.value === 'zh') {
+        locale.value = 'en';
+        currentLanguage.value = 'en';
+        // 如果当前正在展示学校详情，则更新
+        if (currentSchool.value?.component === 'Bupt') {
+          currentSchool.value = getBuptData('en');
+        } else if (currentSchool.value?.component === 'Nus') {
+          currentSchool.value = getNusData('en');
+        }
+      } else {
+        locale.value = 'zh';
+        currentLanguage.value = 'zh';
+        // 如果当前正在展示学校详情，则更新
+        if (currentSchool.value?.component === 'Bupt') {
+          currentSchool.value = getBuptData('zh');
+        } else if (currentSchool.value?.component === 'Nus') {
+          currentSchool.value = getNusData('zh');
+        }
+      }
+    };
+
+    // 5. 处理教育详情
+    const handleEducationDetailOpen = (schoolData) => {
+      const lang = currentLanguage.value;
+      if (schoolData.component === 'Bupt') {
+        schoolData = getBuptData(lang);
+      } else if (schoolData.component === 'Nus') {
+        schoolData = getNusData(lang);
       }
 
-      if (this.showDetail) {
-        this.handleDetailClose();
-        this.$nextTick(() => {
-          this.currentProject = null;
-          this.currentSchool = schoolData;
-          this.showDetail = true;
+      if (showDetail.value) {
+        handleDetailClose();
+        nextTick(() => {
+          currentProject.value = null;
+          currentSchool.value = schoolData;
+          showDetail.value = true;
         });
       } else {
-        this.currentProject = null;
-        this.currentSchool = schoolData;
-        this.showDetail = true;
+        currentProject.value = null;
+        currentSchool.value = schoolData;
+        showDetail.value = true;
       }
-    },
+    };
 
-    handleSkillDetailOpen(skill) {
-      if (this.showDetail) {
-        this.handleDetailClose();
-        this.$nextTick(() => {
-          this.currentProject = null;
-          this.currentSchool = null;
-          this.currentInternship = null;
-          this.currentSkill = skill;
-          this.showDetail = true;
+    // 6. 处理项目详情
+    const handleProjectDetailOpen = (selectedProject) => {
+      if (showDetail.value) {
+        handleDetailClose();
+        nextTick(() => {
+          currentSchool.value = null;
+          currentProject.value = selectedProject;
+          showDetail.value = true;
         });
       } else {
-        this.currentProject = null;
-        this.currentSchool = null;
-        this.currentInternship = null;
-        this.currentSkill = skill;
-        this.showDetail = true;
+        currentSchool.value = null;
+        currentProject.value = selectedProject;
+        showDetail.value = true;
       }
-    },
+    };
 
-    handleDetailClose() {
-      this.showDetail = false;
-      this.currentProject = null;
-      this.currentSchool = null;
-    }
-  }
-}
+    // 7. 处理实习详情
+    const handleInternshipDetailOpen = (internship) => {
+      if (showDetail.value) {
+        handleDetailClose();
+        nextTick(() => {
+          currentProject.value = null;
+          currentInternship.value = internship;
+          showDetail.value = true;
+        });
+      } else {
+        currentProject.value = null;
+        currentInternship.value = internship;
+        showDetail.value = true;
+      }
+    };
+
+    // 8. 处理技能详情
+    const handleSkillDetailOpen = (skill) => {
+      if (showDetail.value) {
+        handleDetailClose();
+        nextTick(() => {
+          currentProject.value = null;
+          currentSchool.value = null;
+          currentInternship.value = null;
+          currentSkill.value = skill;
+          showDetail.value = true;
+        });
+      } else {
+        currentProject.value = null;
+        currentSchool.value = null;
+        currentInternship.value = null;
+        currentSkill.value = skill;
+        showDetail.value = true;
+      }
+    };
+
+    // 9. 关闭详情面板
+    const handleDetailClose = () => {
+      showDetail.value = false;
+      currentProject.value = null;
+      currentSchool.value = null;
+      currentInternship.value = null;
+      currentSkill.value = null;
+    };
+
+    return {
+      currentLanguage,
+      toggleLanguage,
+
+      showDetail,
+      currentProject,
+      currentSchool,
+      currentInternship,
+      currentSkill,
+
+      handleEducationDetailOpen,
+      handleProjectDetailOpen,
+      handleInternshipDetailOpen,
+      handleSkillDetailOpen,
+      handleDetailClose,
+    };
+  },
+};
 </script>
 
 <style>
-/* 样式保持不变 */
+/* 样式基本保持不变 */
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -315,7 +393,6 @@ export default {
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
 }
 
-
 .section {
   margin-bottom: 30px;
 }
@@ -383,11 +460,9 @@ h3 {
   transform: translateY(-2px);
 }
 
-
 .language-toggle-container {
   display: flex;
   justify-content: center;
   margin-bottom: 20px;
 }
-
 </style>

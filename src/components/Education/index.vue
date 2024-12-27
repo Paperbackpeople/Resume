@@ -19,28 +19,25 @@
   </template>
   
   <script>
+  import { useI18n } from 'vue-i18n'
+  import { ref, watch} from 'vue'
+  
   export default {
     name: 'EducationSection',
-    data() {
-      return {
-        educationList: [
-          {
-            period: '2023-2025',
-            school: '新加坡国立大学',
-            major: '计算机科学与技术',
-            degree: '计算机硕士',
-            component: 'Nus'
-          },
-          {
-            period: '2019-2023',
-            school: '北京邮电大学',
-            major: '电子商务及法律',
-            degree: '管理学学士 + 工学学士',
-            component: 'Bupt'
-          }
-        ]
-      }
-    },
+    setup() {
+    const { t, messages, locale } = useI18n()
+    const educationList = ref(messages.value[locale.value].educationList)
+    
+    // 监听语言变化
+    watch(locale, (newLocale) => {
+      educationList.value = messages.value[newLocale].educationList
+    })
+  
+    return {
+      t,
+      educationList
+    }
+  },
     methods: {
       openDetailPanel(index) {
         const selectedSchool = this.educationList[index];
