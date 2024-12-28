@@ -543,7 +543,7 @@ h3 {
 
   /* 字体可适当变小一点 */
   h1 {
-    font-size: 1.2rem;
+    font-size: 2rem;
   }
   h2 {
     font-size: 1rem;
