@@ -27,6 +27,21 @@ services:
     networks:
       - app-network
 
+  resume-log:
+    # 可以基于你自己的 Node.js 镜像，比如 node:16-alpine
+    image: node:16-alpine
+    working_dir: /app
+    volumes:
+      - ./resume-log:/app
+    command: >
+      sh -c "npm install && node server.js"
+    # 如果 server.js 中监听 0.0.0.0:3000，则容器内端口3000
+    expose:
+      - "3000"
+    networks:
+      - app-network
+    restart: always
+    
 networks:
   app-network:
     driver: bridge
