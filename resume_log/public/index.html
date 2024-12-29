@@ -115,7 +115,7 @@
     async function fetchLogs() {
       try {
         // 前端向 /log/logs 请求数据 (与后端路由对应)
-        const response = await fetch('/log/logs');
+        const response = await fetch('/log');
         const data = await response.json();
 
         const tableBody = document.getElementById('log-table');
