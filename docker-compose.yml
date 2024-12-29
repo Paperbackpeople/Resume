@@ -27,7 +27,7 @@ services:
     networks:
       - app-network
 
-  resume-log:
+  resume_log:
     image: node:16-alpine
     working_dir: /app
     volumes:

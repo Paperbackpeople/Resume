@@ -10,7 +10,7 @@ const port = 3000;
 const logFilePath = '/opt/nginx_logs/https_access.log';
 
 // 提供 API 获取日志
-app.get('/log/logs', (req, res) => {
+app.get('/log', (req, res) => {
   try {
     // 读取日志文件（假设使用 UTF-8 编码）
     const logsContent = fs.readFileSync(logFilePath, 'utf-8');
