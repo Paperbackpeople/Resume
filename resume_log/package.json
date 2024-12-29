@@ -1,5 +1,5 @@
 {
-    "name": "resume-log",
+    "name": "resume_log",
     "version": "1.0.0",
     "description": "Resume log API",
     "main": "server.js",

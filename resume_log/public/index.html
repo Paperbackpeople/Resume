@@ -40,21 +40,6 @@
 <body>
   <h1>仅显示 GET 请求日志</h1>
 
-  <!--
-    假设后端 /log/logs 接口返回的 JSON 结构类似:
-    {
-      "logs": [
-        "1.2.3.4 - [12/Dec/2024:14:10:00 +0000] \"GET /example HTTP/1.1\" 200 123 \"-\" \"Mozilla/5.0\"",
-        "1.2.3.5 - [12/Dec/2024:14:10:30 +0000] \"POST /api/login HTTP/1.1\" 403 456 \"http://ref.example\" \"Mozilla/5.0\"",
-        ...
-      ]
-    }
-
-    log_format custom_format '$remote_addr - [$time_local] "$request" '
-                            '$status $body_bytes_sent "$http_referer" '
-                            '"$http_user_agent"';
-  -->
-
   <div class="table-container">
     <table>
       <thead>
@@ -69,9 +54,7 @@
           <th>用户代理</th>
         </tr>
       </thead>
-      <tbody id="log-table">
-        <!-- 日志内容将通过 JavaScript 动态插入 -->
-      </tbody>
+      <tbody id="log-table"></tbody>
     </table>
   </div>
 
@@ -80,27 +63,27 @@
     // $remote_addr - [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent"
     const logRegex = /^(\S+) - \[([^]]+)\] "([^"]+)" (\d{3}) (\d+) "([^"]+)" "([^"]+)"$/;
 
-    // 将 Nginx 日志中的时间转换成北京时间
-    // 示例 timeLocal: "12/Dec/2024:14:10:00 +0000"
+    // 将 Nginx 日志中的时间（time_local）转换成北京时间
+    // 示例: "12/Dec/2024:14:10:00 +0000"
     function convertTimeToBeijing(timeLocal) {
-      // 先用一个正则提取出日期、时间和时区
-      // 分割: 12/Dec/2024:14:10:00 +0000
-      // day/month/year:hour:minute:second offset
+      // 使用正则提取: day/month/year:hour:minute:second offset
+      // 如 12/Dec/2024:14:10:00 +0000
       const match = timeLocal.match(/^(\d{2})\/(\w{3})\/(\d{4}):(\d{2}):(\d{2}):(\d{2}) ([+\-]\d{4})$/);
       if (!match) {
-        return timeLocal; // 如果不匹配，原样返回
+        // 如果不匹配，直接返回原字符串
+        return timeLocal;
       }
 
       const [ , day, monthStr, year, hour, minute, second, offset ] = match;
 
-      // 将英文月份转成数字 0-11
+      // 将英文月份转为数字 0-11
       const monthMap = {
         Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
         Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
       };
       const month = monthMap[monthStr];
 
-      // 构造一个 UTC 时间对象（暂时忽略日志中的时区，先当成 +0000）
+      // 临时将时间当成 UTC，忽略日志中的 offset
       let dateObj = new Date(Date.UTC(
         parseInt(year, 10),
         parseInt(month, 10),
@@ -110,7 +93,7 @@
         parseInt(second, 10)
       ));
 
-      // 解析 offset（例如 +0800 / -0700）
+      // 解析 offset，如 +0800/-0700
       const sign = offset[0];
       const offsetHour = parseInt(offset.slice(1, 3), 10);
       const offsetMin = parseInt(offset.slice(3, 5), 10);
@@ -119,40 +102,37 @@
         totalOffsetMin = -totalOffsetMin;
       }
 
-      // 将当前的 dateObj（认为是 UTC）再根据 offset 做修正
-      // 如果 offset = +0800，说明日志时间其实比 UTC 早了 8 小时
-      // 所以需要把 dateObj 往回拨 8 小时，保证 dateObj 表示的是真正的 UTC 时间
+      // 将 dateObj 往回拨 offset，得到真正的 UTC 时间
       dateObj.setUTCMinutes(dateObj.getUTCMinutes() - totalOffsetMin);
 
-      // 最后用 toLocaleString 转成北京时间
+      // 最后用 toLocaleString 转为北京时间 (Asia/Shanghai)
       return dateObj.toLocaleString('zh-CN', {
         timeZone: 'Asia/Shanghai',
-        hour12: false // 使用 24 小时制
+        hour12: false
       });
     }
 
     async function fetchLogs() {
       try {
-        // 根据实际后端接口地址修改
+        // 前端向 /log/logs 请求数据 (与后端路由对应)
         const response = await fetch('/log/logs');
         const data = await response.json();
 
         const tableBody = document.getElementById('log-table');
         tableBody.innerHTML = '';
 
-        // 先过滤掉不包含 "GET " 的日志行
+        // 二次过滤，只显示含有 "GET " 的行
         const getLogs = data.logs.filter(log => log.includes('"GET '));
 
-        // 逐行解析并展示
+        // 逐行解析
         getLogs.forEach((log, index) => {
-          // 用 logRegex 从日志中提取所需字段
           const match = log.match(logRegex);
           if (!match) {
-            // 如果不匹配，跳过
+            // 如果和正则不匹配，就跳过
             return;
           }
           const [
-            , // 整个匹配
+            ,
             remoteAddr,
             timeLocal,
             request,
@@ -162,10 +142,10 @@
             userAgent
           ] = match;
 
-          // 转换时间为北京时间
+          // 转成北京时间
           const timeBeijing = convertTimeToBeijing(timeLocal);
 
-          // 构造表格行
+          // 创建表格行
           const row = document.createElement('tr');
           row.innerHTML = `
             <td>${index + 1}</td>
