@@ -1,54 +1,182 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Filtered Logs Viewer</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Filtered GET Logs Viewer</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
     }
+    h1 {
+      margin-bottom: 1rem;
+    }
+    .table-container {
+      overflow-x: auto; /* 启用横向滚动条，防止日志过长导致样式混乱 */
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
     table {
       width: 100%;
-      border-collapse: collapse;
+      border-collapse: collapse; /* 合并边框，使表格更美观 */
+      min-width: 1000px; /* 设一个较大的最小宽度，保证表头完整展示 */
     }
     th, td {
       border: 1px solid #ddd;
       padding: 8px;
+      text-align: left;
+      white-space: nowrap; /* 防止长日志自动换行 */
     }
     th {
       background-color: #f4f4f4;
-      text-align: left;
+    }
+    /* 让每一行在鼠标移上去时有个浅色背景，视觉更明显 */
+    tr:hover {
+      background-color: #f9f9f9;
     }
   </style>
 </head>
 <body>
-  <h1>Filtered Logs Viewer</h1>
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Log Entry</th>
-      </tr>
-    </thead>
-    <tbody id="log-table">
-      <!-- Log entries will be inserted here -->
-    </tbody>
-  </table>
+  <h1>仅显示 GET 请求日志</h1>
+
+  <!--
+    假设后端 /log/logs 接口返回的 JSON 结构类似:
+    {
+      "logs": [
+        "1.2.3.4 - [12/Dec/2024:14:10:00 +0000] \"GET /example HTTP/1.1\" 200 123 \"-\" \"Mozilla/5.0\"",
+        "1.2.3.5 - [12/Dec/2024:14:10:30 +0000] \"POST /api/login HTTP/1.1\" 403 456 \"http://ref.example\" \"Mozilla/5.0\"",
+        ...
+      ]
+    }
+
+    log_format custom_format '$remote_addr - [$time_local] "$request" '
+                            '$status $body_bytes_sent "$http_referer" '
+                            '"$http_user_agent"';
+  -->
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>序号</th>
+          <th>客户端地址</th>
+          <th>访问时间（北京时间）</th>
+          <th>请求</th>
+          <th>状态码</th>
+          <th>响应字节</th>
+          <th>引用地址</th>
+          <th>用户代理</th>
+        </tr>
+      </thead>
+      <tbody id="log-table">
+        <!-- 日志内容将通过 JavaScript 动态插入 -->
+      </tbody>
+    </table>
+  </div>
 
   <script>
+    // 解析 Nginx 日志行的正则，用于匹配 custom_format:
+    // $remote_addr - [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent"
+    const logRegex = /^(\S+) - \[([^]]+)\] "([^"]+)" (\d{3}) (\d+) "([^"]+)" "([^"]+)"$/;
+
+    // 将 Nginx 日志中的时间转换成北京时间
+    // 示例 timeLocal: "12/Dec/2024:14:10:00 +0000"
+    function convertTimeToBeijing(timeLocal) {
+      // 先用一个正则提取出日期、时间和时区
+      // 分割: 12/Dec/2024:14:10:00 +0000
+      // day/month/year:hour:minute:second offset
+      const match = timeLocal.match(/^(\d{2})\/(\w{3})\/(\d{4}):(\d{2}):(\d{2}):(\d{2}) ([+\-]\d{4})$/);
+      if (!match) {
+        return timeLocal; // 如果不匹配，原样返回
+      }
+
+      const [ , day, monthStr, year, hour, minute, second, offset ] = match;
+
+      // 将英文月份转成数字 0-11
+      const monthMap = {
+        Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
+        Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
+      };
+      const month = monthMap[monthStr];
+
+      // 构造一个 UTC 时间对象（暂时忽略日志中的时区，先当成 +0000）
+      let dateObj = new Date(Date.UTC(
+        parseInt(year, 10),
+        parseInt(month, 10),
+        parseInt(day, 10),
+        parseInt(hour, 10),
+        parseInt(minute, 10),
+        parseInt(second, 10)
+      ));
+
+      // 解析 offset（例如 +0800 / -0700）
+      const sign = offset[0];
+      const offsetHour = parseInt(offset.slice(1, 3), 10);
+      const offsetMin = parseInt(offset.slice(3, 5), 10);
+      let totalOffsetMin = offsetHour * 60 + offsetMin;
+      if (sign === '-') {
+        totalOffsetMin = -totalOffsetMin;
+      }
+
+      // 将当前的 dateObj（认为是 UTC）再根据 offset 做修正
+      // 如果 offset = +0800，说明日志时间其实比 UTC 早了 8 小时
+      // 所以需要把 dateObj 往回拨 8 小时，保证 dateObj 表示的是真正的 UTC 时间
+      dateObj.setUTCMinutes(dateObj.getUTCMinutes() - totalOffsetMin);
+
+      // 最后用 toLocaleString 转成北京时间
+      return dateObj.toLocaleString('zh-CN', {
+        timeZone: 'Asia/Shanghai',
+        hour12: false // 使用 24 小时制
+      });
+    }
+
     async function fetchLogs() {
       try {
-        const response = await fetch('/logs');
+        // 根据实际后端接口地址修改
+        const response = await fetch('/log/logs');
         const data = await response.json();
 
         const tableBody = document.getElementById('log-table');
         tableBody.innerHTML = '';
 
-        data.logs.forEach((log, index) => {
+        // 先过滤掉不包含 "GET " 的日志行
+        const getLogs = data.logs.filter(log => log.includes('"GET '));
+
+        // 逐行解析并展示
+        getLogs.forEach((log, index) => {
+          // 用 logRegex 从日志中提取所需字段
+          const match = log.match(logRegex);
+          if (!match) {
+            // 如果不匹配，跳过
+            return;
+          }
+          const [
+            , // 整个匹配
+            remoteAddr,
+            timeLocal,
+            request,
+            status,
+            bodyBytesSent,
+            referer,
+            userAgent
+          ] = match;
+
+          // 转换时间为北京时间
+          const timeBeijing = convertTimeToBeijing(timeLocal);
+
+          // 构造表格行
           const row = document.createElement('tr');
-          row.innerHTML = `<td>${index + 1}</td><td>${log}</td>`;
+          row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${remoteAddr}</td>
+            <td>${timeBeijing}</td>
+            <td>${request}</td>
+            <td>${status}</td>
+            <td>${bodyBytesSent}</td>
+            <td>${referer}</td>
+            <td>${userAgent}</td>
+          `;
           tableBody.appendChild(row);
         });
       } catch (error) {
@@ -56,7 +184,7 @@
       }
     }
 
-    // Fetch logs when the page loads
+    // 页面加载时获取并展示日志
     fetchLogs();
   </script>
 </body>
