@@ -34,7 +34,7 @@ services:
       - ./resume-log:/app
       - /opt/nginx_logs:/opt/nginx_logs:ro   # <-- 新增，映射宿主机的日志目录
     command: >
-      sh -c "npm install && node server.js"
+      sh -c "node server.js"
     expose:
       - "3000"
     networks:
