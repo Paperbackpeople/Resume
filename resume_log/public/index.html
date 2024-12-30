@@ -38,13 +38,14 @@
   </style>
 </head>
 <body>
-  <h1>仅显示 GET 请求日志</h1>
+  <h1>访问日志（GET 请求）</h1>
 
   <div class="table-container">
     <table>
       <thead>
         <tr>
           <th>序号</th>
+          <th>地理位置</th>
           <th>客户端地址</th>
           <th>访问时间（北京时间）</th>
           <th>请求</th>
@@ -61,111 +62,134 @@
   <script>
     // 解析 Nginx 日志行的正则，用于匹配 custom_format:
     // $remote_addr - [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent"
-    const logRegex = /^(\S+) - \[([^]]+)\] "([^"]+)" (\d{3}) (\d+) "([^"]+)" "([^"]+)"$/;
+    const logRegex = /^(\S+)\s+-\s+\[([^\]]+)\]\s+"([^"]+)"\s+(\d{3})\s+(\d+|-)\s+"([^"]*)"\s+"([^"]*)"$/;
 
-    // 将 Nginx 日志中的时间（time_local）转换成北京时间
-    // 示例: "12/Dec/2024:14:10:00 +0000"
-    function convertTimeToBeijing(timeLocal) {
-      // 使用正则提取: day/month/year:hour:minute:second offset
-      // 如 12/Dec/2024:14:10:00 +0000
-      const match = timeLocal.match(/^(\d{2})\/(\w{3})\/(\d{4}):(\d{2}):(\d{2}):(\d{2}) ([+\-]\d{4})$/);
+// 将 Nginx 日志中的时间转换为北京时间
+function convertTimeToBeijing(timeLocal) {
+  const match = timeLocal.match(/^(\d{2})\/(\w{3})\/(\d{4}):(\d{2}):(\d{2}):(\d{2}) ([+\-]\d{4})$/);
+  if (!match) {
+    return timeLocal;
+  }
+
+  const [ , day, monthStr, year, hour, minute, second, offset ] = match;
+
+  const monthMap = {
+    Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
+    Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
+  };
+  const month = monthMap[monthStr];
+
+  let dateObj = new Date(Date.UTC(
+    parseInt(year, 10),
+    parseInt(month, 10),
+    parseInt(day, 10),
+    parseInt(hour, 10),
+    parseInt(minute, 10),
+    parseInt(second, 10)
+  ));
+
+  const sign = offset[0];
+  const offsetHour = parseInt(offset.slice(1, 3), 10);
+  const offsetMin = parseInt(offset.slice(3, 5), 10);
+  let totalOffsetMin = offsetHour * 60 + offsetMin;
+  if (sign === '-') {
+    totalOffsetMin = -totalOffsetMin;
+  }
+
+  dateObj.setUTCMinutes(dateObj.getUTCMinutes() - totalOffsetMin);
+
+  return dateObj.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false });
+}
+
+// 缓存对象，用于存储 IP 和其对应的地理位置信息
+const ipCache = {};
+
+// 获取地理位置信息
+async function getGeoLocation(ip) {
+  // 如果缓存中有该 IP 的地理位置，直接返回
+  if (ipCache[ip]) {
+    return ipCache[ip];
+  }
+
+  try {
+    // 请求 IP 地理位置 API
+    const response = await fetch(`http://ip-api.com/json/${ip}`);
+    const data = await response.json();
+
+    // 如果查询成功，缓存结果并返回
+    if (data.status === 'success') {
+      const location = `${data.country}, ${data.city}`;
+      ipCache[ip] = location; // 缓存地理位置信息
+      return location;
+    } else {
+      ipCache[ip] = '未知位置'; // 缓存未知结果
+      return '未知位置';
+    }
+  } catch (error) {
+    console.error('Error fetching geo location:', error);
+    ipCache[ip] = '未知位置'; // 缓存错误结果
+    return '未知位置';
+  }
+}
+
+// 获取并解析日志
+async function fetchLogs() {
+  try {
+    const response = await fetch('/log');
+    const data = await response.json();
+
+    const tableBody = document.getElementById('log-table');
+    tableBody.innerHTML = '';
+
+    const getLogs = data.logs.filter(log => log.includes('"GET ')).reverse();
+
+    for (const [index, log] of getLogs.entries()) {
+      const match = log.match(logRegex);
       if (!match) {
-        // 如果不匹配，直接返回原字符串
-        return timeLocal;
+        console.log('Unmatched log:', log);
+        continue;
       }
 
-      const [ , day, monthStr, year, hour, minute, second, offset ] = match;
+      const [
+        , // 整个匹配
+        remoteAddr,
+        timeLocal,
+        request,
+        status,
+        bodyBytesSent,
+        referer,
+        userAgent
+      ] = match;
 
-      // 将英文月份转为数字 0-11
-      const monthMap = {
-        Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
-        Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
-      };
-      const month = monthMap[monthStr];
+      const timeBeijing = convertTimeToBeijing(timeLocal);
 
-      // 临时将时间当成 UTC，忽略日志中的 offset
-      let dateObj = new Date(Date.UTC(
-        parseInt(year, 10),
-        parseInt(month, 10),
-        parseInt(day, 10),
-        parseInt(hour, 10),
-        parseInt(minute, 10),
-        parseInt(second, 10)
-      ));
+      // 获取地理位置（使用缓存）
+      const location = await getGeoLocation(remoteAddr);
 
-      // 解析 offset，如 +0800/-0700
-      const sign = offset[0];
-      const offsetHour = parseInt(offset.slice(1, 3), 10);
-      const offsetMin = parseInt(offset.slice(3, 5), 10);
-      let totalOffsetMin = offsetHour * 60 + offsetMin;
-      if (sign === '-') {
-        totalOffsetMin = -totalOffsetMin;
-      }
-
-      // 将 dateObj 往回拨 offset，得到真正的 UTC 时间
-      dateObj.setUTCMinutes(dateObj.getUTCMinutes() - totalOffsetMin);
-
-      // 最后用 toLocaleString 转为北京时间 (Asia/Shanghai)
-      return dateObj.toLocaleString('zh-CN', {
-        timeZone: 'Asia/Shanghai',
-        hour12: false
-      });
+      // 创建表格行
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${location}</td>
+        <td>${remoteAddr}</td>
+        <td>${timeBeijing}</td>
+        <td>${request}</td>
+        <td>${status}</td>
+        <td>${bodyBytesSent}</td>
+        <td>${referer}</td>
+        <td>${userAgent}</td>
+      `;
+      tableBody.appendChild(row);
     }
 
-    async function fetchLogs() {
-      try {
-        // 前端向 /log/logs 请求数据 (与后端路由对应)
-        const response = await fetch('/log');
-        const data = await response.json();
+  } catch (error) {
+    console.error('Error fetching logs:', error);
+  }
+}
 
-        const tableBody = document.getElementById('log-table');
-        tableBody.innerHTML = '';
+// 页面加载时获取并展示日志
+fetchLogs();
 
-        // 二次过滤，只显示含有 "GET " 的行
-        const getLogs = data.logs.filter(log => log.includes('"GET '));
-
-        // 逐行解析
-        getLogs.forEach((log, index) => {
-          const match = log.match(logRegex);
-          if (!match) {
-            // 如果和正则不匹配，就跳过
-            return;
-          }
-          const [
-            ,
-            remoteAddr,
-            timeLocal,
-            request,
-            status,
-            bodyBytesSent,
-            referer,
-            userAgent
-          ] = match;
-
-          // 转成北京时间
-          const timeBeijing = convertTimeToBeijing(timeLocal);
-
-          // 创建表格行
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${remoteAddr}</td>
-            <td>${timeBeijing}</td>
-            <td>${request}</td>
-            <td>${status}</td>
-            <td>${bodyBytesSent}</td>
-            <td>${referer}</td>
-            <td>${userAgent}</td>
-          `;
-          tableBody.appendChild(row);
-        });
-      } catch (error) {
-        console.error('Error fetching logs:', error);
-      }
-    }
-
-    // 页面加载时获取并展示日志
-    fetchLogs();
   </script>
 </body>
 </html>

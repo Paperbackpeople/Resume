@@ -34,6 +34,11 @@ app.get('/log', (req, res) => {
 // 提供静态文件支持，使得可以直接访问到前端 HTML/CSS/JS
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use((req, res, next) => {
+  console.log('Incoming request on:', req.url);
+  next();
+});
+
 // 启动服务器
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
