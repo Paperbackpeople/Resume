@@ -135,7 +135,7 @@ async function getGeoLocation(ip) {
 // 获取并解析日志
 async function fetchLogs() {
   try {
-    const response = await fetch('/log');
+    const response = await fetch('/log', { cache: 'no-store' });
     const data = await response.json();
 
     const tableBody = document.getElementById('log-table');
