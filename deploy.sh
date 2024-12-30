@@ -16,16 +16,24 @@ git pull origin main
 log "2. 停止并移除现有容器..."
 docker-compose down
 
-# 3. 构建前端应用
-log "3. 构建前端应用..."
+# 3. 清理无用的 Docker 资源
+log "3. 清理无用的 Docker 资源..."
+docker system prune -f
+
+# 4. 删除无用的 Docker 镜像
+log "4. 删除无用的 Docker 镜像..."
+docker image prune -f
+
+# 5. 构建前端应用
+log "5. 构建前端应用..."
 npm run build
 
-# 4. 构建新的 Docker 镜像
-log "4. 构建新的 Docker 镜像..."
+# 6. 构建新的 Docker 镜像
+log "6. 构建新的 Docker 镜像..."
 docker-compose build
 
-# 5. 启动容器
-log "5. 启动容器..."
+# 7. 启动容器
+log "7. 启动容器..."
 docker-compose up -d
 
 log "部署完成！"
