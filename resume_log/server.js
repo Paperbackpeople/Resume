@@ -8,6 +8,7 @@ const cors = require('cors');
 
 // 日志文件路径（请根据实际情况修改）
 const logFilePath = '/opt/nginx_logs/https_access.log';
+const fetch = require('node-fetch');
 
 app.get('/geo/:ip', async (req, res) => {
   const ip = req.params.ip;
