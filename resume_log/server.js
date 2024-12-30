@@ -4,6 +4,7 @@ const path = require('path');
 
 const app = express();
 const port = 3000;
+const cors = require('cors');
 
 // 日志文件路径（请根据实际情况修改）
 const logFilePath = '/opt/nginx_logs/https_access.log';
@@ -47,7 +48,7 @@ function handleLogRequest(req, res) {
 
 // 提供静态文件支持，使得可以直接访问到前端 HTML/CSS/JS
 app.use(express.static(path.join(__dirname, 'public')));
-
+app.use(cors());
 // 启动服务器
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
