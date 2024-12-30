@@ -8,6 +8,19 @@ const port = 3000;
 // 日志文件路径（请根据实际情况修改）
 const logFilePath = '/opt/nginx_logs/https_access.log';
 
+app.get('/geo/:ip', async (req, res) => {
+  const ip = req.params.ip;
+  try {
+    // 改成 HTTPS
+    const geoResponse = await fetch(`http://ip-api.com/json/${ip}`);
+    const geoJson = await geoResponse.json();
+    res.json(geoJson); // 返回给前端
+  } catch (error) {
+    console.error('Error fetching geo location:', error);
+    res.status(500).json({ error: 'Failed to fetch geo location' });
+  }
+});
+
 app.get('/log', (req, res) => {
   handleLogRequest(req, res);
 });

@@ -112,8 +112,7 @@ async function getGeoLocation(ip) {
   }
 
   try {
-    // 请求 IP 地理位置 API
-    const response = await fetch(`http://ip-api.com/json/${ip}`);
+    const response = await fetch(`/geo/${ip}`);
     const data = await response.json();
 
     // 如果查询成功，缓存结果并返回
