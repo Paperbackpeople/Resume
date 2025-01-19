@@ -2,48 +2,68 @@ const express = require('express');
 const fs = require('fs');
 const readline = require('readline');
 const path = require('path');
+const cors = require('cors');
+const fetch = require('node-fetch');
 
 const app = express();
 const port = 3000;
 
-// 动态设置日志文件路径
-const logFilePath = process.env.LOG_FILE_PATH || '/opt/nginx_logs/https_access.log';
+// 日志文件路径
+const logFilePath = '/opt/nginx_logs/https_access.log';
 
-// 获取日志 API，流式读取最新 100 条日志
-app.get('/log', async (req, res) => {
+// 中间件
+app.use(cors());
+app.use(express.static(path.join(__dirname, 'public')));
+
+// 获取 IP 地理信息
+app.get('/geo/:ip', async (req, res) => {
+  const ip = req.params.ip;
   try {
-    // 创建一个流式读取接口
-    const fileStream = fs.createReadStream(logFilePath, { encoding: 'utf-8' });
-    const rl = readline.createInterface({
-      input: fileStream,
-      crlfDelay: Infinity, // 处理不同平台的换行符
-    });
-
-    const logs = [];
-    const maxLogs = 100; // 保留的最大日志条数
-
-    for await (const line of rl) {
-      // 只保留包含指定 HTTP 方法的日志
-      if (/GET|POST|HEAD|PUT|DELETE|OPTIONS|PATCH/.test(line)) {
-        logs.push(line);
-
-        // 如果超过 maxLogs，则移除最旧的日志，始终保留最新的日志
-        if (logs.length > maxLogs) {
-          logs.shift();
-        }
-      }
-    }
-
-    // 返回 JSON，其中 logs 为数组
-    res.json({ logs });
+    const geoResponse = await fetch(`http://ip-api.com/json/${ip}`);
+    const geoJson = await geoResponse.json();
+    res.json(geoJson); // 返回地理信息
   } catch (error) {
-    console.error('Error reading log file:', error.message);
-    res.status(500).json({ error: 'Failed to read log file' });
+    console.error('Error fetching geo location:', error);
+    res.status(500).json({ error: 'Failed to fetch geo location' });
   }
 });
 
-// 提供静态文件服务
-app.use(express.static(path.join(__dirname, 'public')));
+// 获取最新 100 条日志
+app.get('/log', async (req, res) => {
+  try {
+    const logs = await getLatestLogs(logFilePath, 100); // 获取最新的 100 条日志
+    res.set('Cache-Control', 'no-store'); // 禁用缓存
+    res.json({ logs }); // 返回日志
+  } catch (error) {
+    console.error('Error processing logs:', error);
+    res.status(500).json({ error: 'Failed to process logs' });
+  }
+});
+
+// 流式读取日志并获取最新 N 条
+async function getLatestLogs(filePath, maxLogs) {
+  const logs = [];
+  const fileStream = fs.createReadStream(filePath, { encoding: 'utf-8' });
+
+  const rl = readline.createInterface({
+    input: fileStream,
+    crlfDelay: Infinity, // 处理不同平台的换行符
+  });
+
+  for await (const line of rl) {
+    // 匹配有效的 HTTP 日志行
+    if (/^(\S+) - \[.+\] "((GET|POST|HEAD|PUT|DELETE|OPTIONS|PATCH) .+ HTTP\/1\.\d)" \d{3} \d+ .+$/.test(line)) {
+      logs.push(line);
+
+      // 保持 logs 长度为 maxLogs，移除最旧的
+      if (logs.length > maxLogs) {
+        logs.shift();
+      }
+    }
+  }
+
+  return logs;
+}
 
 // 启动服务器
 app.listen(port, () => {
