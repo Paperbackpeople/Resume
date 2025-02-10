@@ -52,7 +52,7 @@ async function getLatestLogs(filePath, maxLogs) {
 
   for await (const line of rl) {
     // 匹配有效的 HTTP 日志行
-    if (/^(\S+) - \[.+\] "((GET|POST|HEAD|PUT|DELETE|OPTIONS|PATCH) .+ HTTP\/1\.\d)" (?!4)\d{2} \d+ .+$/.test(line)) {
+    if (/^(\S+) - \[.+\] "((GET|POST|HEAD|PUT|DELETE|OPTIONS|PATCH) .+ HTTP\/1\.\d)" \d{3} \d+ .+$/.test(line)) {
       logs.push(line);
 
       // 保持 logs 长度为 maxLogs，移除最旧的
