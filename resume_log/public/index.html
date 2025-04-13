@@ -59,136 +59,160 @@
     </table>
   </div>
 
-  <script>
-    // 解析 Nginx 日志行的正则，用于匹配 custom_format:
-    // $remote_addr - [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent"
-    const logRegex = /^(\S+)\s+-\s+\[([^\]]+)\]\s+"([^"]+)"\s+(\d{3})\s+(\d+|-)\s+"([^"]*)"\s+"([^"]*)"$/;
+<script>
+  // 解析 Nginx 日志行的正则，用于匹配 custom_format:
+  // $remote_addr - [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent"
+  const logRegex = /^(\S+)\s+-\s+\[([^\]]+)\]\s+"([^"]+)"\s+(\d{3})\s+(\d+|-)\s+"([^"]*)"\s+"([^"]*)"$/;
 
-// 将 Nginx 日志中的时间转换为北京时间
-function convertTimeToBeijing(timeLocal) {
-  const match = timeLocal.match(/^(\d{2})\/(\w{3})\/(\d{4}):(\d{2}):(\d{2}):(\d{2}) ([+\-]\d{4})$/);
-  if (!match) {
-    return timeLocal;
+  // 将 Nginx 日志中的时间转换为北京时间
+  function convertTimeToBeijing(timeLocal) {
+    const match = timeLocal.match(/^(\d{2})\/(\w{3})\/(\d{4}):(\d{2}):(\d{2}):(\d{2}) ([+\-]\d{4})$/);
+    if (!match) {
+      return timeLocal;
+    }
+    const [ , day, monthStr, year, hour, minute, second, offset ] = match;
+    const monthMap = {
+      Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
+      Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
+    };
+    const month = monthMap[monthStr];
+    let dateObj = new Date(Date.UTC(
+      parseInt(year, 10),
+      parseInt(month, 10),
+      parseInt(day, 10),
+      parseInt(hour, 10),
+      parseInt(minute, 10),
+      parseInt(second, 10)
+    ));
+    const sign = offset[0];
+    const offsetHour = parseInt(offset.slice(1, 3), 10);
+    const offsetMin = parseInt(offset.slice(3, 5), 10);
+    let totalOffsetMin = offsetHour * 60 + offsetMin;
+    if (sign === '-') {
+      totalOffsetMin = -totalOffsetMin;
+    }
+    dateObj.setUTCMinutes(dateObj.getUTCMinutes() - totalOffsetMin);
+    return dateObj.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false });
   }
 
-  const [ , day, monthStr, year, hour, minute, second, offset ] = match;
+  // 缓存对象，用于存储 IP 与其对应的地理位置信息
+  const ipCache = {};
 
-  const monthMap = {
-    Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
-    Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
-  };
-  const month = monthMap[monthStr];
-
-  let dateObj = new Date(Date.UTC(
-    parseInt(year, 10),
-    parseInt(month, 10),
-    parseInt(day, 10),
-    parseInt(hour, 10),
-    parseInt(minute, 10),
-    parseInt(second, 10)
-  ));
-
-  const sign = offset[0];
-  const offsetHour = parseInt(offset.slice(1, 3), 10);
-  const offsetMin = parseInt(offset.slice(3, 5), 10);
-  let totalOffsetMin = offsetHour * 60 + offsetMin;
-  if (sign === '-') {
-    totalOffsetMin = -totalOffsetMin;
-  }
-
-  dateObj.setUTCMinutes(dateObj.getUTCMinutes() - totalOffsetMin);
-
-  return dateObj.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false });
-}
-
-// 缓存对象，用于存储 IP 和其对应的地理位置信息
-const ipCache = {};
-
-// 获取地理位置信息
-async function getGeoLocation(ip) {
-  // 如果缓存中有该 IP 的地理位置，直接返回
-  if (ipCache[ip]) {
-    return ipCache[ip];
-  }
-
-  try {
-    const response = await fetch(`/geo/${ip}`);
-    const data = await response.json();
-
-    // 如果查询成功，缓存结果并返回
-    if (data.status === 'success') {
-      const location = `${data.country}, ${data.city}`;
-      ipCache[ip] = location; // 缓存地理位置信息
-      return location;
-    } else {
-      ipCache[ip] = '未知位置'; // 缓存未知结果
+  // 获取地理位置信息（不再在此处 await，而是返回 Promise）
+  async function getGeoLocation(ip) {
+    // 如果缓存中有该 IP 的地理位置，直接返回
+    if (ipCache[ip]) {
+      return ipCache[ip];
+    }
+    try {
+      const response = await fetch(`/geo/${ip}`);
+      const data = await response.json();
+      if (data.status === 'success') {
+        const location = `${data.country}, ${data.city}`;
+        ipCache[ip] = location;
+        return location;
+      } else {
+        ipCache[ip] = '未知位置';
+        return '未知位置';
+      }
+    } catch (error) {
+      console.error('Error fetching geo location:', error);
+      ipCache[ip] = '未知位置';
       return '未知位置';
     }
-  } catch (error) {
-    console.error('Error fetching geo location:', error);
-    ipCache[ip] = '未知位置'; // 缓存错误结果
-    return '未知位置';
   }
-}
 
-// 获取并解析日志
-async function fetchLogs() {
-  try {
-    const response = await fetch('/log', { cache: 'no-store' });
-    const data = await response.json();
+  // 控制并发请求的参数与队列
+  const concurrencyLimit = 10;  // 同时允许最多 10 个并发请求
+  let activeRequests = 0;
+  const requestQueue = [];
 
-    const tableBody = document.getElementById('log-table');
-    tableBody.innerHTML = '';
-
-    const getLogs = data.logs.filter(log => log.includes('"GET ')).reverse();
-
-    for (const [index, log] of getLogs.entries()) {
-      const match = log.match(logRegex);
-      if (!match) {
-        console.log('Unmatched log:', log);
-        continue;
-      }
-
-      const [
-        , // 整个匹配
-        remoteAddr,
-        timeLocal,
-        request,
-        status,
-        bodyBytesSent,
-        referer,
-        userAgent
-      ] = match;
-
-      const timeBeijing = convertTimeToBeijing(timeLocal);
-
-      // 获取地理位置（使用缓存）
-      const location = await getGeoLocation(remoteAddr);
-
-      // 创建表格行
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${location}</td>
-        <td>${remoteAddr}</td>
-        <td>${timeBeijing}</td>
-        <td>${request}</td>
-        <td>${status}</td>
-        <td>${bodyBytesSent}</td>
-        <td>${referer}</td>
-        <td>${userAgent}</td>
-      `;
-      tableBody.appendChild(row);
+  // 当有空闲位置时，运行队列中的下一个请求
+  function runNextRequest() {
+    if (requestQueue.length > 0 && activeRequests < concurrencyLimit) {
+      const { ip, index } = requestQueue.shift();
+      activeRequests++;
+      getGeoLocation(ip)
+        .then(location => {
+          const cell = document.getElementById(`location-${index}`);
+          if (cell) {
+            cell.textContent = location;
+          }
+        })
+        .catch(() => {
+          const cell = document.getElementById(`location-${index}`);
+          if (cell) {
+            cell.textContent = '未知位置';
+          }
+        })
+        .finally(() => {
+          activeRequests--;
+          runNextRequest();
+        });
     }
-
-  } catch (error) {
-    console.error('Error fetching logs:', error);
   }
-}
 
-// 页面加载时获取并展示日志
-fetchLogs();
+  // 将新的 IP 地理信息请求加入队列，并尝试运行
+  function fetchGeoWithRateLimit(ip, index) {
+    requestQueue.push({ ip, index });
+    runNextRequest();
+  }
 
-  </script>
+  // 获取并解析日志，并生成表格（采用预填充方式，地理位置待异步更新）
+  async function fetchLogs() {
+    try {
+      const response = await fetch('/log', { cache: 'no-store' });
+      const data = await response.json();
+      const tableBody = document.getElementById('log-table');
+      tableBody.innerHTML = '';
+
+      // 筛选包含 "GET " 请求的日志，并按最新在前排序
+      const getLogs = data.logs.filter(log => log.includes('"GET ')).reverse();
+
+      for (const [index, log] of getLogs.entries()) {
+        const match = log.match(logRegex);
+        if (!match) {
+          console.log('Unmatched log:', log);
+          continue;
+        }
+        const [
+          ,          // 忽略整个匹配
+          remoteAddr,
+          timeLocal,
+          request,
+          status,
+          bodyBytesSent,
+          referer,
+          userAgent
+        ] = match;
+
+        const timeBeijing = convertTimeToBeijing(timeLocal);
+
+        // 创建表格行，地理位置先显示“加载中…”
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td id="location-${index}">加载中…</td>
+          <td>${remoteAddr}</td>
+          <td>${timeBeijing}</td>
+          <td>${request}</td>
+          <td>${status}</td>
+          <td>${bodyBytesSent}</td>
+          <td>${referer}</td>
+          <td>${userAgent}</td>
+        `;
+        tableBody.appendChild(row);
+
+        // 异步获取 IP 地理位置信息，使用并发请求速率控制
+        fetchGeoWithRateLimit(remoteAddr, index);
+      }
+    } catch (error) {
+      console.error('Error fetching logs:', error);
+    }
+  }
+
+  // 页面加载时获取并展示日志
+  fetchLogs();
+</script>
 </body>
 </html>
