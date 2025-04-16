@@ -35,6 +35,7 @@ services:
       dockerfile: resume_log.Dockerfile
     volumes:
       - /opt/nginx_logs:/opt/nginx_logs:ro
+      - /root/ip2region.xdb:/root/ip2region.xdb:ro
     expose:
       - "3000"
     networks:
