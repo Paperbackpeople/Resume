@@ -9,7 +9,6 @@
   "dependencies": {
     "express": "^4.18.2",
     "node-fetch": "^2.6.7",
-    "cors": "^2.8.5",
-    "node-ip2region": "^1.2.2"
+    "cors": "^2.8.5"
   }
 }
