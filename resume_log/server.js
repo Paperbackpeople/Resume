@@ -76,16 +76,25 @@ async function getLatestLogs(filePath, maxLogs) {
     crlfDelay: Infinity
   });
 
+  const temp = [];
+
   for await (const line of rl) {
-    if (/^(\S+) - \[.+\] "((GET|POST).+ HTTP\/1\.\d)" (?!4\d{2})\d{3} \d+ .+$/.test(line)) {
-      logs.push(line);
-      if (logs.length > maxLogs) {
-        logs.shift();
-      }
+    const match = line.match(/^(\S+) - \[.+\] "((GET|POST).+ HTTP\/1\.\d)" \d{3} \d+ "([^"]*)" ".*"$/);
+    if (!match) continue;
+
+    const requestLine = match[2];
+    const referer = match[4];
+
+    const isStaticResource = requestLine.includes('/css/') || requestLine.includes('/js/');
+    const isGoogle = referer.toLowerCase().includes('google');
+    const isDash = referer === '-';
+
+    if (!isStaticResource && !isGoogle && !isDash) {
+      temp.push(line);
     }
   }
 
-  return logs;
+  return temp.slice(-maxLogs);
 }
 
 app.listen(port, () => {
