@@ -24,16 +24,13 @@ docker system prune -f
 log "4. 删除无用的 Docker 镜像..."
 docker image prune -f
 
-# 5. 构建前端应用
-log "5. 构建前端应用..."
-npm run build
 
 # 6. 构建新的 Docker 镜像
-log "6. 构建新的 Docker 镜像..."
+log "5. 构建新的 Docker 镜像..."
 docker-compose build
 
 # 7. 启动容器
-log "7. 启动容器..."
+log "6. 启动容器..."
 docker-compose up -d
 
 log "部署完成！"
