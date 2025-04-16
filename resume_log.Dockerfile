@@ -2,8 +2,7 @@
 
 FROM node:16-bullseye
 
-# 安装 Python3
-RUN apt-get update && apt-get install -y python3
+
 
 # 设置工作目录
 WORKDIR /app
